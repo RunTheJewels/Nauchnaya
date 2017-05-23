@@ -4,6 +4,7 @@
 
 <head>
     <title>Курсовая</title>
+    <meta charset="utf-8" />
     <script type="text/javascript" src="./three.min.js"></script>
     <script type="text/javascript" src="./lib/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="./lib/PointerLockControls.js"></script>
@@ -72,19 +73,32 @@
         // add the plane to the scene
         scene.add(plane);
 
-        var cubeGeometry = new THREE.CubeGeometry(4,8,4);
-        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0x00ee22});
+        jQuery.ajax({
+            type:'GET',
+            xhrFields: {
+              withCredentials: true
+            },
+            url:'./objects.json',
+            username: 'user',
+            dataType: 'json',
+            error:function(d, textStatus, error) {
+            alert("Загрузка данных стоек закончилась неудачей, status: " + textStatus + ", error: "+error);
+            },
+            success:function(data,textStatus,jqHXR) {
+	       		var cubeGeometry = new THREE.CubeGeometry(4,8,4);
+			 	var cubeMaterial = new THREE.MeshLambertMaterial({color: 0x00ee22});
+				 
+      		  for (var j = 0 ; j < data.length ; j++) {
+        		var pos = transformid(data[j]['const'][1]['_id']);
+        		var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+	            cube.position.z=pos[2];
+	            cube.position.x=pos[0];
+	            cube.position.y=pos[1];
+	            cube.name = data[j]['const'][0]['id'];
+	            scene.add(cube);
+		      }
 
-        for (var j = 0 ; j < objs.length ; j++) {
-            var pos = transformid(objs[j]['const'][1]['_id']);
-            cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-            cube.position.z=pos[2];
-            cube.position.x=pos[0];
-            cube.position.y=pos[1];
-            cube.name = objs[j]['const'][0]['id'];
-            scene.add(cube);
-        }
-
+		}});
 
 
         var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.4 );
