@@ -74,46 +74,47 @@
         scene.add(plane);
 
         jQuery.ajax({
-            type:'GET',
-            xhrFields: {
-              withCredentials: true
-            },
-            url:'./objects.json',
-            username: 'user',
-            dataType: 'json',
+          type:'GET',
+          url: pathOfObjects,
+          contentType: "application/json",
+          dataType: "jsonp",
+          crossDomain: true,
+          cache: true,
             error:function(d, textStatus, error) {
             alert("Загрузка данных стоек закончилась неудачей, status: " + textStatus + ", error: "+error);
             },
-            success:function(data,textStatus,jqHXR) {
-	       		var cubeGeometry = new THREE.CubeGeometry(4,8,4);
-			 	var cubeMaterial = new THREE.MeshLambertMaterial({color: 0x00ee22});
-				 
-      		  for (var j = 0 ; j < data.length ; j++) {
-        		var pos = transformid(data[j]['const'][1]['_id']);
-        		var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-	            cube.position.z=pos[2];
-	            cube.position.x=pos[0];
-	            cube.position.y=pos[1];
-	            cube.name = data[j]['const'][0]['id'];
-	            scene.add(cube);
+            success:function(json,textStatus,jqHXR) {
+	       		   var cubeGeometry = new THREE.CubeGeometry(4,8,4);
+			 	       var cubeMaterial = new THREE.MeshLambertMaterial({color: defaultColor});
+      		     for (var j = 0 ; j < json.data.length ; j++) {
+        		       var pos = transformid(json.data[j]);
+        		       var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+	                 cube.position.z=pos[2];
+	                 cube.position.x=pos[0];
+	                 cube.position.y=pos[1];
+	                 cube.name = getName(json.data[j]);
+	                 scene.add(cube);
+                   loadGraph(json.data[j]);
 		      }
 
-		}});
 
 
-        var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.4 );
+		      }});
+
+
+        var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
         directionalLight.position.set( -20, 40, 60 );
         scene.add(directionalLight);
 
-        var directionalLight2 = new THREE.DirectionalLight( 0xffffff, 0.2 );
+        var directionalLight2 = new THREE.DirectionalLight( 0xffffff, 0.15 );
         directionalLight.position.set( 20, 40, -60 );
         scene.add(directionalLight2);
 
-        var directionalLight3 = new THREE.DirectionalLight( 0x000000, 0.1 );
+        var directionalLight3 = new THREE.DirectionalLight( 0xffffff, 0.07 );
         directionalLight.position.set( 30, 20, -160 );
         scene.add(directionalLight3);
 
-        var directionalLight4 = new THREE.DirectionalLight( 0x000000, 0.15 );
+        var directionalLight4 = new THREE.DirectionalLight( 0xffffff, 0.1 );
         directionalLight.position.set( 30, 20, 160 );
         scene.add(directionalLight4);
 
@@ -125,73 +126,48 @@
         // add the output of the renderer to the html element
         $("#WebGL-output").append(renderer.domElement);
 
-        // call the render function
         var step=0;
 
-
-        // var xmlhttp = new XMLHttpRequest();
-        // xmlhttp.open('GET', 'http://admin:admin@stat1.lomonosov.parallel.ru:4448/control/snapshot?format=json','admin','admin' false);
-        // xmlhttp.withCredentials = true;
-        // xmlhttp.send(null);
-        // if(xmlhttp.status == 200) {
-        //   alert(xmlhttp.responseText);
-        // } else alert(23);
-
-
-        // alert(Math.round(new Date().getTime()/1000.0));
         camera.lookAt(new THREE.Vector3(0,60,0));
         render();
 
         function render() {
 
-          if (Math.round(new Date().getTime()/1000.0) - time > 10)
+          if (Math.round(new Date().getTime()/1000.0) - time > frequencyOfRequests)
           {
-            jQuery.ajax({
-            type:'GET',
-            xhrFields: {
-              withCredentials: true
-            },
-            url:'http://stat1.lomonosov.parallel.ru:4448/control/snapshot?format=json',
-            username: 'admin',
-            password: 'admin',
-            dataType: 'json',
-            error:function(d, textStatus, error) {
-            alert("Загрузка данных не вышла, status: " + textStatus + ", error: "+error);
-            },
-            success:function(data,textStatus,jqHXR) {
-              for (var j = 0 ; j < data.length ; j++) {
-                  if (data[j]["info"]["time"]>time)
-                  {
-                    var col;
-                    if (data[j]["info"]["status"] == "WARNING")
-                      col = 0xffff00;
-                    else if (data[j]["info"]["status"] == "DANGER")
-                      col = 0xffa500;
-                    else if (data[j]["info"]["status"] == "CRITICAL")
-                      col = 0xff0000;
-                    else col = 0x0000ff;
-                    jQuery.ajax({
-                    type:'GET',
-                    xhrFields: {
-                      withCredentials: true
-                    },
-                    url:'http://stat1.lomonosov.parallel.ru:4448/view/entity?path=obj(_id=='+data[j]["usr"][_id]+')',
-                    username: 'admin',
-                    password: 'admin',
-                    dataType: 'json',
-                    error:function(d, textStatus, error) {
-                    alert("Элемент не найден, status: " + textStatus + ", error: "+error);
-                    },
-                    success:function(data2,textStatus,jqHXR)
-                    {
-                      scene.getObjectByName(data2['const']['loc']).material = new THREE.MeshLambertMaterial({color: col})
-                    }
 
-                  });
+          jQuery.ajax({
+            type:'GET',
+            url: pathOfRequest,
+            contentType: "application/json",
+            dataType: "jsonp",
+            crossDomain: true,
+	          cache: true,
+            error:function(d, textStatus, error) {
+              alert("Загрузка данных не вышла, status: " + textStatus + ", error: "+error);
+            },
+            success: function(json) {
+              // console.log(json.data.length);
+              var lng = json.data.length;
+              for (var i = 0; i < lng; i++)
+              {
+                if (getTimeOfError(json.data[i]) > time)
+                {
+                  var col;
+                  var erst = getErrorStatus(json.data[i]);
+                  if (erst in statuses) {
+                    col = statuses[erst];
+                  } else {
+                    col = defaultColor;
+                  }
+                  var objEr = getErrorObjName(json.data[i]);
+                  console.log("Имя объекта: ",objEr);
+                  showError(objEr,col);
                 }
               }
             }
           });
+
           time = Math.round(new Date().getTime()/1000.0);
         }
 

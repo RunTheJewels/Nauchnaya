@@ -55,6 +55,8 @@ else if (K == 72) {
     camera.up = new THREE.Vector3(0,1,0);
     camera.lookAt(new THREE.Vector3(0,60,0));
 }
-// else if (K == 49){
-  // scene.getObjectByName("R12A").material = new THREE.MeshLambertMaterial({color: 0xff0000});
+else if (K == 49){
+  // scene.getObjectByName("rack_gsh1_1-0").material = new THREE.MeshLambertMaterial({color: 0x000000});
+// console.log(JSON.stringify(graph));
+  }
 };
