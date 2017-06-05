@@ -56,32 +56,17 @@ function transformid(param)
 	{
 		if (temp[0] <= 2) {
 			res[0] = (temp[0]*2+temp[1]-1) * 13;
-			res[2] = (temp[2] - 15) * 6;
+			res[2] = temp[2] * 6;
 		} else {
 			res[0] = (temp[0]*2+temp[1]-5) * 13;
-			res[2] = temp[2] * 6;
+			res[2] = temp[2] * 6 - 100;
 		}
 	} else {
 		res[0] = (temp[0]*2-4) * 13;
-		res[2] = temp[1] * 6;
+		res[2] = temp[1] * 6 - 100;
 	}
     res[1] = 4;
 	return res;
-}
-
-function getName(s)
-{
-	return s['const'][1]['_id'];
-}
-
-function getTimeOfError(s)
-{
-	return s["info"]["time"];
-}
-
-function getErrorStatus(s)
-{
-	return s["info"]["status"];
 }
 
 var statuses =
@@ -105,23 +90,17 @@ function getErrorObjName(s)
 	return s["usr"]["_id"];
 }
 
-function showError(s,col)
+function getName(s)
 {
-	var name = "";
-	for (key in graph)
-	{
-		if (key == s)
-		{
-			name = key;
-			break;
-		} else if ((asdf = graph[key].indexOf(s)) > -1)
-		{
-			name = key;
-			break;
-		}
-	}
-	if (name != "")
-		scene.getObjectByName(name).material = new THREE.MeshLambertMaterial({color: col});
-	else
-		console.log("Невозможно локализовать ошибку в текущих настройках, _id = ", s);
+	return s['const'][1]['_id'];
+}
+
+function getTimeOfError(s)
+{
+	return s["info"]["time"];
+}
+
+function getErrorStatus(s)
+{
+	return s["info"]["status"];
 }

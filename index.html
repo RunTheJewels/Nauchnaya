@@ -34,7 +34,7 @@
     var controls;
     var obj3 = new THREE.Object3D();
     var scene = new THREE.Scene();
-    var time = Math.round(new Date().getTime()/1000.0);
+    var time = 0;
 
     // once everything is loaded, we run our Three.js stuff.
     $(function () {
@@ -59,7 +59,7 @@
         scene.add( controls.getObject() );
 
         // create the ground plane
-        var planeGeometry = new THREE.PlaneGeometry(200,200);
+        var planeGeometry = new THREE.PlaneGeometry(250,250);
         var planeMaterial =    new THREE.MeshLambertMaterial({color: 0xffffff});
         var plane = new THREE.Mesh(planeGeometry,planeMaterial);
 
@@ -135,7 +135,8 @@
 
           if (Math.round(new Date().getTime()/1000.0) - time > frequencyOfRequests)
           {
-
+            console.log("request", "time = ", time);
+            var curTime = time;
           jQuery.ajax({
             type:'GET',
             url: pathOfRequest,
@@ -147,11 +148,12 @@
               alert("Загрузка данных не вышла, status: " + textStatus + ", error: "+error);
             },
             success: function(json) {
-              // console.log(json.data.length);
               var lng = json.data.length;
               for (var i = 0; i < lng; i++)
               {
-                if (getTimeOfError(json.data[i]) > time)
+                // console.log("\t ", getTimeOfError(json.data[i]), " > ", time, " == ",
+                //  getTimeOfError(json.data[i]) > time);
+                if (getTimeOfError(json.data[i]) > curTime)
                 {
                   var col;
                   var erst = getErrorStatus(json.data[i]);
@@ -161,8 +163,25 @@
                     col = defaultColor;
                   }
                   var objEr = getErrorObjName(json.data[i]);
-                  console.log("Имя объекта: ",objEr);
-                  showError(objEr,col);
+                  // console.log("Имя объекта: ",objEr);
+                  // showError(objEr,col);
+                  var name = "";
+                	for (key in graph)
+                	{
+                		if (key == objEr)
+                		{
+                			name = key;
+                			break;
+                		} else if ((asdf = graph[key].indexOf(objEr)) > -1)
+                		{
+                			name = key;
+                			break;
+                		}
+                	}
+                	if (name != "")
+                		scene.getObjectByName(name).material = new THREE.MeshLambertMaterial({color: col});
+                	else
+                		console.log("Невозможно локализовать ошибку в текущих настройках, _id = ", objEr);
                 }
               }
             }

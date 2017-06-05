@@ -1,3 +1,4 @@
+var i = 1;
 
 var isDragging = false;
 
@@ -56,7 +57,14 @@ else if (K == 72) {
     camera.lookAt(new THREE.Vector3(0,60,0));
 }
 else if (K == 49){
-  // scene.getObjectByName("rack_gsh1_1-0").material = new THREE.MeshLambertMaterial({color: 0x000000});
-// console.log(JSON.stringify(graph));
+  // var cl = 0x000000;
+  // var iter = 0x0a0a0a;
+  // // for (var i = 1; i <= 1; i++)
+  // // {
+  //   console.log("R"+Math.floor(i/10).toString()+(i%10).toString()+"D");
+  //   scene.getObjectByName("R"+Math.floor(i/10).toString()+(i%10).toString()+"D").material = new THREE.MeshLambertMaterial({color: cl});
+  //   i+=1;
+  //   // cl += iter;
+  // // }
   }
 };
