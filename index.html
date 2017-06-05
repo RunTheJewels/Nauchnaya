@@ -70,13 +70,10 @@
         plane.position.y=0
         plane.position.z=0
 
-        // add the plane to the scene
         scene.add(plane);
-        console.log(pathOfObjects.length);
+        var dm = pathOfObjects;
         for (var i = 0; i < pathOfObjects.length; i++)
         {
-          var cubeGeometry = new THREE.CubeGeometry(pathOfObjects[i]["size"][0],
-          pathOfObjects[i]["size"][1],pathOfObjects[i]["size"][2]);
           jQuery.ajax({
           type:'GET',
           url: pathOfObjects[i]["name"],
@@ -89,9 +86,19 @@
             },
             success:function(json,textStatus,jqHXR) {
 			 	       var cubeMaterial = new THREE.MeshLambertMaterial({color: defaultColor});
-      		     for (var j = 0 ; j < json.data.length ; j++) {
+               var cg;
+               for (j = 0; j < dm.length; j++)
+               {
+                 if (this.url.indexOf(dm[j]["name"]) != -1)
+                {
+                  var cg = new THREE.CubeGeometry(dm[j]["size"][0],
+                  dm[j]["size"][1],dm[j]["size"][2])
+                  break;
+                }
+               }
+      		     for (var j = 0; j < json.data.length; j++) {
         		       var pos = transformid(json.data[j]);
-        		       var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        		       var cube = new THREE.Mesh(cg, cubeMaterial);
 	                 cube.position.z=pos[2];
 	                 cube.position.x=pos[0];
 	                 cube.position.y=pos[1];
