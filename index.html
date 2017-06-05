@@ -72,10 +72,14 @@
 
         // add the plane to the scene
         scene.add(plane);
-
-        jQuery.ajax({
+        console.log(pathOfObjects.length);
+        for (var i = 0; i < pathOfObjects.length; i++)
+        {
+          var cubeGeometry = new THREE.CubeGeometry(pathOfObjects[i]["size"][0],
+          pathOfObjects[i]["size"][1],pathOfObjects[i]["size"][2]);
+          jQuery.ajax({
           type:'GET',
-          url: pathOfObjects,
+          url: pathOfObjects[i]["name"],
           contentType: "application/json",
           dataType: "jsonp",
           crossDomain: true,
@@ -84,7 +88,6 @@
             alert("Загрузка данных стоек закончилась неудачей, status: " + textStatus + ", error: "+error);
             },
             success:function(json,textStatus,jqHXR) {
-	       		   var cubeGeometry = new THREE.CubeGeometry(4,8,4);
 			 	       var cubeMaterial = new THREE.MeshLambertMaterial({color: defaultColor});
       		     for (var j = 0 ; j < json.data.length ; j++) {
         		       var pos = transformid(json.data[j]);
@@ -96,10 +99,8 @@
 	                 scene.add(cube);
                    loadGraph(json.data[j]);
 		      }
-
-
-
-		      }});
+          }});
+        }
 
 
         var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );

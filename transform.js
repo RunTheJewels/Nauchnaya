@@ -79,7 +79,12 @@ var statuses =
 
 var defaultColor = 0x00ee22;
 
-var pathOfObjects = "http://user@stat1.lomonosov.parallel.ru:4448/view/entity?path=obj(type==rack)";
+var pathOfObjects = [
+{
+	"name":"http://user@stat1.lomonosov.parallel.ru:4448/view/entity?path=obj(type==rack)",
+	"size":[4,8,4]
+}
+];
 
 var pathOfRequest = "http://admin:admin@stat1.lomonosov.parallel.ru:4448/control/snapshot?format=jsonp";
 
