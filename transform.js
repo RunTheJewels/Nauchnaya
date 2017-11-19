@@ -83,7 +83,7 @@ var pathOfObjects = [
 
 var pathOfRequest = "http://admin:admin@stat1.lomonosov.parallel.ru:4448/control/snapshot?format=jsonp";
 
-var frequencyOfRequests = 10;
+var frequencyOfRequests = 60;
 
 function getErrorObjName(s)
 {

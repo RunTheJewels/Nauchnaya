@@ -4,6 +4,9 @@ var isDragging = false;
 
 var res = new THREE.Vector3();
 
+var mouse = new THREE.Vector2();
+
+var raycaster = new THREE.Raycaster();
 
 window.onmousedown = function(e) {
     isDragging = true;
@@ -33,6 +36,18 @@ window.onmousemove = function(e) {
         camera.lookAt(res);
 
     }
+    console.log(0);
+    mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+	
+	raycaster.setFromCamera( mouse, camera );
+
+	// calculate objects intersecting the picking ray
+	var intersects = raycaster.intersectObjects( scene.children );
+	if (intersects.length >= 1)
+	{
+		document.getElementById('error-info').innerHTML = intersects[0].object.name;
+	}
 };
 
 window.onwheel = function(e) {
@@ -54,9 +69,44 @@ else if (K == 72) {
     camera.position.y = 60;
     camera.position.z = 180;
     camera.up = new THREE.Vector3(0,1,0);
-    camera.lookAt(new THREE.Vector3(0,60,0));
+    camera.lookAt(new THREE.Vector3(0,10,0));
 }
 else if (K == 49){
+	raycaster.setFromCamera( mouse, camera );
+
+	// calculate objects intersecting the picking ray
+	var intersects = raycaster.intersectObjects( scene.children );
+	if (intersects.length >= 1)
+	{
+		document.getElementById('error-info').innerHTML = intersects[0].object.name;
+		//alert(intersects[0].object.name);
+	}
+	
+	
+	//for ( var i = 0; i < intersects.length; i++ ) {
+		
+		//intersects[ i ].object.material.color.set( 0xff0000 );
+
+	//}
+	
+	
+//	console.log(1);
+	//var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   //x
+      //                                  -( event.clientY / window.innerHeight ) * 2 + 1,  //y
+        //                                0.5 );                                            //z
+   // var raycaster = new THREE.Raycaster();
+    //console.log(2);
+//    alert(mouse3D);
+//    projector.unprojectVector( mouse3D, camera );   
+//    mouse3D.sub( camera.position );                
+//    mouse3D.normalize();
+//    var raycaster = new THREE.Raycaster( camera.position, mouse3D );
+//    var intersects = raycaster.intersectObjects( objects );
+    // Change color if hit block
+//    if ( intersects.length > 0 ) {
+//        intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
+//    }
+    
   // var cl = 0x000000;
   // var iter = 0x0a0a0a;
   // // for (var i = 1; i <= 1; i++)
