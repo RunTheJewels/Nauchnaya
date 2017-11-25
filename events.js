@@ -36,7 +36,7 @@ window.onmousemove = function(e) {
         camera.lookAt(res);
 
     }
-    console.log(0);
+    
     mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 	
@@ -46,7 +46,10 @@ window.onmousemove = function(e) {
 	var intersects = raycaster.intersectObjects( scene.children );
 	if (intersects.length >= 1)
 	{
-		document.getElementById('error-info').innerHTML = intersects[0].object.name;
+		document.getElementById('error-info').innerHTML = "<b>" + intersects[0].object.name + ":</b> " + objxerr[intersects[0].object.name];
+	} else
+	{
+		document.getElementById('error-info').innerHTML = "<b>Задний фон</b>";
 	}
 };
 
@@ -72,15 +75,17 @@ else if (K == 72) {
     camera.lookAt(new THREE.Vector3(0,10,0));
 }
 else if (K == 49){
-	raycaster.setFromCamera( mouse, camera );
+	
+	alert(JSON.stringify(objxerr));
+	//raycaster.setFromCamera( mouse, camera );
 
 	// calculate objects intersecting the picking ray
-	var intersects = raycaster.intersectObjects( scene.children );
-	if (intersects.length >= 1)
-	{
-		document.getElementById('error-info').innerHTML = intersects[0].object.name;
+	//var intersects = raycaster.intersectObjects( scene.children );
+	//if (intersects.length >= 1)
+	//{
+	//	document.getElementById('error-info').innerHTML = intersects[0].object.name;
 		//alert(intersects[0].object.name);
-	}
+	//}
 	
 	
 	//for ( var i = 0; i < intersects.length; i++ ) {

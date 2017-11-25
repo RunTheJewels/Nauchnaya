@@ -45,7 +45,7 @@
 </div>
 
 <div id="error-info" class="objinfo">
-	Здесь будет инфа по объектам
+	
 </div>
 <!-- Javascript code that runs our Three.js examples -->
 <script type="text/javascript">
@@ -56,7 +56,8 @@
     var obj3 = new THREE.Object3D();
     var scene = new THREE.Scene();
     var time = 0;
-
+	var objxerr = {};
+    
     // once everything is loaded, we run our Three.js stuff.
     $(function () {
 
@@ -131,6 +132,8 @@
 		      }
           }});
         }
+        
+        
 
 
         var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
@@ -161,7 +164,8 @@
 
         camera.lookAt(new THREE.Vector3(0,60,0));
         render();
-
+		
+		
         function render() {
 
           if (Math.round(new Date().getTime()/1000.0) - time > frequencyOfRequests)
@@ -180,12 +184,20 @@
             },
             success: function(json) {
               var lng = json.data.length;
+              for (item in graph)
+              {
+				  scene.getObjectByName(item).material = new THREE.MeshLambertMaterial({color: defaultColor});
+			  }
+			  for (item in objxerr)
+			  {
+				  objxerr[item] = [];
+			  }
+			  
               for (var i = 0; i < lng; i++)
               {
                 // console.log("\t ", getTimeOfError(json.data[i]), " > ", time, " == ",
                 //  getTimeOfError(json.data[i]) > time);
-                if (getTimeOfError(json.data[i]) > curTime)
-                {
+				  
                   var col;
                   var erst = getErrorStatus(json.data[i]);
                   if (erst in statuses) {
@@ -193,6 +205,7 @@
                   } else {
                     col = defaultColor;
                   }
+                  var descr = getErrorDescripton(json.data[i]);
                   var objEr = getErrorObjName(json.data[i]);
                   // console.log("Имя объекта: ",objEr);
                   // showError(objEr,col);
@@ -209,11 +222,13 @@
                 			break;
                 		}
                 	}
-                	if (name != "")
+                	if (name != "") {
                 		scene.getObjectByName(name).material = new THREE.MeshLambertMaterial({color: col});
+                		objxerr[name].push(descr);
+                	}
                 	else
                 		console.log("Невозможно локализовать ошибку в текущих настройках, _id = ", objEr);
-                }
+                
               }
             }
           });

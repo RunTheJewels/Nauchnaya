@@ -51,7 +51,8 @@ function loadGraph(s)
 		// 	}
 		// });
 	}
-
+	
+	objxerr[objID] = [];
 }
 
 function transformid(param)
@@ -105,6 +106,11 @@ function getTimeOfError(s)
 function getErrorStatus(s)
 {
 	return s["info"]["status"];
+}
+
+function getErrorDescripton(s)
+{
+	return s["usr"]["descr"];
 }
 
 var loadedData = {
