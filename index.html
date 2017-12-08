@@ -25,13 +25,25 @@
 			height: 100%;
 			z-index: 2;
 		}
+		.textbox{
+			heigth: 40px;
+			width: 100%;
+		}
 		.objinfo{
 			position: fixed;
 			left:0px;
 			top:0px;
 			readonly:True;
-			height:100px;
+			width: 99%;
 			opacity: 1;
+			z-index: 3;
+		}
+		.help{
+			position: fixed;
+			height: 20px;
+			right: 0px;
+			bottom:0px;
+			font-size: 10px;
 			z-index: 3;
 		}
     </style>
@@ -40,13 +52,18 @@
 <!--<div id="Stats-output">
 </div>-->
 
+<button name="Help" class="help" onclick="help_onclick()">Управление</button>
+
 <!-- Div which will hold the Output -->
 <div id="WebGL-output" class="output3d">
 </div>
 
-<div id="error-info" class="objinfo">
-	
+<div class="textbox">
+	<textarea id="error-info" class="objinfo" readonly="True" rows="5">
+		
+	</textarea>
 </div>
+
 <!-- Javascript code that runs our Three.js examples -->
 <script type="text/javascript">
 
@@ -67,11 +84,11 @@
         // alert("scene");
         // create a camera, which defines where we're looking at.
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.x = 120;
-        camera.position.y = 60;
-        camera.position.z = 180;
+        camera.position.x = home[0];
+        camera.position.y = home[1];
+        camera.position.z = home[2];
 		camera.up = new THREE.Vector3(0,1,0);
-        camera.lookAt(new THREE.Vector3(0,10,0));
+        camera.lookAt(new THREE.Vector3(0,-30,0));
         // alert("camera");
         // create a render and set the size
         var renderer = new THREE.WebGLRenderer();
@@ -162,7 +179,7 @@
 
         var step=0;
 
-        camera.lookAt(new THREE.Vector3(0,60,0));
+        camera.lookAt(new THREE.Vector3(home[3],home[4],home[5]));
         render();
 		
 		
@@ -224,7 +241,7 @@
                 	}
                 	if (name != "") {
                 		scene.getObjectByName(name).material = new THREE.MeshLambertMaterial({color: col});
-                		objxerr[name].push(descr);
+                		objxerr[name].push(objEr+": "+descr);
                 	}
                 	else
                 		console.log("Невозможно локализовать ошибку в текущих настройках, _id = ", objEr);
