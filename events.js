@@ -10,10 +10,13 @@ var mouse = new THREE.Vector2();
 
 var raycaster = new THREE.Raycaster();
 
+var c_h_o = "";
+
 help_onclick = function(){
 	alert('Управление:\n\
 w,a,s,d -- вперёд, влево, назад, вправо\n\
 зажать ЛКМ и двигать -- перемещение камеры\n\
+двойной клик ЛКМ -- подробный список ошибок\n\
 колёсико мыши -- поворот камеры вокруг оси, вдоль которой она смотрит\n\
 h -- вернуться в начальную позицию\n\
 r -- включить/отключить рэйкастинг\n\
@@ -68,11 +71,27 @@ window.onmousemove = function(e) {
 		if (intersects.length >= 1)
 		{
 			document.getElementById('error-info').innerHTML = intersects[0].object.name + ":\n" + catlist(objxerr[intersects[0].object.name]);
+			
+			if ((c_h_o != "") && (c_h_o != intersects[0].object.name))
+			{
+				scene.getObjectByName(c_h_o).material.emissive = new THREE.Color("black");
+				c_h_o = "";
+			}
+			if (intersects[0].object.name != "Плоскость"){
+				if (c_h_o != intersects[0].object.name){
+					scene.getObjectByName(intersects[0].object.name).material.emissive = new THREE.Color("grey");
+					c_h_o = intersects[0].object.name;
+				}
+			}
 		} else
 		{
 			document.getElementById('error-info').innerHTML = "Задний фон";
 		}
 	}
+};
+
+window.ondblclick = function() {
+	alert(document.getElementById('error-info').innerHTML);
 };
 
 window.onwheel = function(e) {

@@ -46,6 +46,14 @@
 			font-size: 10px;
 			z-index: 3;
 		}
+		.colinfo{
+			position: fixed;
+			left: 0px;
+			bottom:0px;
+			font-size: 20px;
+			background-color: white;
+			z-index: 3;
+		}
     </style>
 </head>
 <body>
@@ -64,6 +72,9 @@
 	</textarea>
 </div>
 
+<div id="colinfo" class="colinfo" readonly="True">
+</div>
+
 <!-- Javascript code that runs our Three.js examples -->
 <script type="text/javascript">
 
@@ -75,10 +86,21 @@
     var time = 0;
 	var objxerr = {};
     
+    function fillto6letters(s) {
+		while (s.length < 6){
+			s = "0" + s;
+		}
+		return s;
+	}
+    
     // once everything is loaded, we run our Three.js stuff.
     $(function () {
-
-
+		var colinfo_data = "";
+		for (status in statuses) {
+			colinfo_data += "<font color='#" + fillto6letters(statuses[status].toString(16)) + "'>" + status + "</font><br/>";
+		}
+		colinfo_data += "<font color='#" + fillto6letters(defaultColor) + "'>Всё ОК</font><br/>";
+		document.getElementById('colinfo').innerHTML = colinfo_data;
         // create a scene, that will hold all our elements such as objects, cameras and lights.
 
         // alert("scene");
