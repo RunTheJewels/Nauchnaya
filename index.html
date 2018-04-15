@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>Курсовая</title>
+    <title>Трёхмерный интерфейс</title>
     <meta charset="utf-8" />
     <script type="text/javascript" src="./three.min.js"></script>
     <script type="text/javascript" src="./lib/jquery-3.2.1.min.js"></script>
@@ -86,23 +86,109 @@
     var scene = new THREE.Scene();
     var time = 0;
 	var objxerr = {};
+	var loadedTextures = {};
 	
-	
-	
+	function copyMaterial (_material) {
+        var newMaterial;
+        //alert(JSON.stringify(_material))
+        if (Array.isArray(_material))
+        {
+			newMaterial = []
+        	for (var i in _material)
+        	{
+				var nm = new THREE.MeshLambertMaterial();
+        		for (var p in _material[i]) {
+					//alert(p)
+            		if (_material[i].hasOwnProperty(p) && p !== "id") {
+                	var obj = _material[i][p];
+                	nm[p] = obj;
+            		}
+        		}
+        	newMaterial.push(nm);
+			}
+		} else
+		{
+			newMaterial = new THREE.MeshLambertMaterial();
+			for (var p in _material) {
+				//alert(p)
+            	if (_material.hasOwnProperty(p) && p !== "id") {
+               	var obj = _material[p];
+                newMaterial[p] = obj;
+            	}
+			}
+		}
+        return newMaterial;
+    }
     function fillto6letters(s) {
 		while (s.length < 6){
 			s = "0" + s;
 		}
 		return s;
 	}
-
+	function getpossize(node)
+       {
+		if (node.data._id in positions)
+		{
+			if (positions[node.data._id][0] == 'a')
+			{
+				node.data.pos = positions[node.data._id].slice(1,4)
+			} else if (positions[node.data._id][0] == 'r')
+			{
+				var s = node.parent.data.pos.slice()
+				//alert(node.data._id)
+				//alert(node.depth)
+				var ds = positions[node.data._id].slice(1,4)
+				for (var i = 0; i < 3; i++)
+				{
+					s[i] += ds[i]
+				}
+				node.data.pos = s
+			}
+		}
+		if (node.data.type in sizes)
+		{
+			node.data.size = sizes[node.data.type]
+		}
+		if (node.data.type in textures)
+		{
+			node.data.texture = textures[node.data.type]
+		}
+	}
+	function objCanPlace(node)
+	{
+		if (node.data.pos != undefined && node.data.size != undefined)
+		{
+			return true;
+		}
+		return false;
+	}
+	function objOnScene(node)
+	{
+		var cube;
+		if (node.data.type in loadedTextures)
+		{
+			var m = copyMaterial(loadedTextures[node.data.type].material);
+			cube = new THREE.Mesh(loadedTextures[node.data.type].geometry,m);
+		} else
+		{
+			t = new THREE.MeshLambertMaterial({color: defaultColor})
+			var cg = new THREE.CubeGeometry(node.data.size[0],node.data.size[1],
+			node.data.size[2])
+			cube = new THREE.Mesh(cg, t);
+		}	
+	    cube.position.z=node.data.pos[2];
+	    cube.position.x=node.data.pos[0];
+	    cube.position.y=node.data.pos[1];
+	    cube.name = node.data._id;
+	    scene.add(cube);
+	}
     // once everything is loaded, we run our Three.js stuff.
     $(function () {
 		var colinfo_data = "";
 		for (status in statuses) {
 			colinfo_data += "<font color='#" + fillto6letters(statuses[status].toString(16)) + "'>" + status + "</font><br/>";
 		}
-		colinfo_data += "<font color='#" + fillto6letters(defaultColor) + "'>Всё ОК</font><br/>";
+		//colinfo_data += "<font color='#" + fillto6letters(defaultColor) + "'>Всё ОК</font><br/>";
 		document.getElementById('colinfo').innerHTML = colinfo_data;
         // create a scene, that will hold all our elements such as objects, cameras and lights.
 
@@ -139,54 +225,44 @@
         scene.add(plane);
         //var dm = pathOfObjects;
         g = Arboreal.parse(graph, 'children')
-        function getpossize(node)
-        {
-			if (node.data._id in positions)
-			{
-				if (positions[node.data._id][0] == 'a')
-				{
-					node.data.pos = positions[node.data._id].slice(1,4)
-				}
-			}
-			if (node.data.type in sizes)
-			{
-				node.data.size = sizes[node.data.type]
-			}
-			if (node.data.type in textures)
-			{
-				node.data.texture = textures[node.data.type]
-			}
+        // Получаем позиции из reversePositions
+        for (var item in reversePositions)
+		{
+			p = ['r'].concat(item.split(',').map(parseFloat));
+			for (var index in reversePositions[item]) positions[reversePositions[item][index]] = p
 		}
+		
 		g.traverseDown(getpossize)
         //g.children[0].data['pos'] = [0,0,0]
-        alert(g.children[0].data.pos)
-        alert(g.children[0].data.size)
-        startDepth = 1
+        //alert(g.children[0].data.pos)
+        //alert(g.children[0].data.size)
+        startDepth = 2
+        for (var item in textures)
+        {
+			if (typeof(textures[item]) == 'string')
+			{
+				var b = THREE.ImageUtils.loadTexture(textures[item])
+				t = new THREE.MeshLambertMaterial({map: b})
+			} else
+			{
+				var t = []
+				for (var i=0; i < 6; i++)
+				{
+					t.push(new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(textures[item][i])}))
+				}
+			}
+			var cg = new THREE.CubeGeometry(sizes[item][0],sizes[item][1],
+					sizes[item][2])
+			var cube = new THREE.Mesh(cg, t);
+			loadedTextures[item] = cube;
+			//alert(item)
+			//alert(loadedTextures[item])
+		}
         function drawStart(node)
         {
 			if (node.depth == startDepth)
 			{
-				var t
-				if ('texture' in node.data)
-				{
-					var b = THREE.ImageUtils.loadTexture(node.data.texture)
-					t = new THREE.MeshLambertMaterial({map: b})
-				} else
-				{
-					alert('t')
-					t = new THREE.MeshLambertMaterial({color: defaultColor})
-				}
-				var cg = new THREE.CubeGeometry(node.data.size[0],node.data.size[1],
-					node.data.size[2])
-				alert(cg)
-				var cube = new THREE.Mesh(cg, t);
-				alert(cube)
-	        	cube.position.z=node.data.pos[2];
-	        	cube.position.x=node.data.pos[0];
-	        	cube.position.y=node.data.pos[1];
-	        	cube.name = node.data._id;
-	        	scene.add(cube);
-	        	alert('d')
+				objOnScene(node);
 			}
 		}
 		g.traverseDown(drawStart)
@@ -262,73 +338,111 @@
 
         function render() {
 
-          //if (Math.round(new Date().getTime()/1000.0) - time > frequencyOfRequests)
-          //{
+          if (Math.round(new Date().getTime()/1000.0) - time > frequencyOfRequests)
+          {
             //console.log("request", "time = ", time);
             //var curTime = time;
-          //jQuery.ajax({
-            //type:'GET',
-            //url: pathOfRequest,
-            //contentType: "application/json",
-            //dataType: "jsonp",
-            //crossDomain: true,
-	          //cache: true,
-            //error:function(d, textStatus, error) {
-              //alert("Загрузка данных не вышла, status: " + textStatus + ", error: "+error);
-            //},
-            //success: function(json) {
-              //var lng = json.data.length;
-              //for (item in graph)
-              //{
-				  //scene.getObjectByName(item).material = new THREE.MeshLambertMaterial({color: defaultColor});
-			  //}
-			  //for (item in objxerr)
-			  //{
-				  //objxerr[item] = [];
-			  //}
+          jQuery.ajax({
+            type:'GET',
+            url: pathOfRequest,
+            contentType: "application/json",
+            dataType: "jsonp",
+            crossDomain: true,
+	          cache: true,
+            error:function(d, textStatus, error) {
+              alert("Загрузка данных не вышла, status: " + textStatus + ", error: "+error);
+            },
+            success: function(json) {
+              var lng = json.data.length;
+              objxerr = {};
+              // Потом добавить через objcol, так будет быстрее
+              //var objcol = {};
+              var objpr = {};
+              var getParOnScene = {};
+              for (var i in scene.children)
+              {
+				  if (scene.children[i].name != '')
+				  {
+				  	objxerr[scene.children[i].name] = [];
+				  	//objcol[scene.children[i].name] = 0x000000;
+				  	objpr[scene.children[i].name] = 0;
+				  }
+			  }
+			  g.traverseDown(function (node)
+			  {
+				  if (node.data._id in objxerr)
+				  	getParOnScene[node.data._id] = node.data._id;
+				  else if (node.parent != null)
+				  {
+					  if (node.parent.data._id in getParOnScene)
+					  {
+						  getParOnScene[node.data._id] = getParOnScene[node.parent.data._id];
+					  }
+				  }
+			  });
+			  //alert(lng)
+			  for (var i = 0; i < lng; i++)
+			  {
+				  //document.title = 'Загрузка ошибок: '+(i+1)Вс+'/'+lng;
+				  var erst = getErrorStatus(json.data[i]);
+				  var col;
+				  var priority;
+                  if (erst in statuses) {
+                    col = statuses[erst];
+                  } else {
+                    col = 0x000000;
+                  }
+                  if (erst in statPriorities) {
+                    priority = statPriorities[erst];
+                  } else {
+                    priority = 1;
+                  }
+                  var descr = getErrorDescripton(json.data[i]);
+                  var objEr = getErrorObjName(json.data[i]);
+                  //alert(objEr)
+                  //var treeNode = g.find(function(node)
+                  //{
+					  //return node.data._id == objEr;
+				  //})
+				  //var found = false;
+				  //while (!found)
+				  //{
+					  //if (treeNode == null) break;
+					  ////alert(treeNode.data._id)
+					  ////if (scene.getObjectByName(treeNode.data._id) != undefined)
+					  //if (treeNode.data._id in objxerr)
+					  //{
+						//found = true;
+						//break;
+					  //}
+					  //treeNode = treeNode.parent;
+				  //}
+                  if (objEr in getParOnScene)
+                  {
+					  objxerr[getParOnScene[objEr]].push({'_id': objEr, 'err': descr});
+					  if (priority > objpr[getParOnScene[objEr]])
+					  {
+						  objpr[getParOnScene[objEr]] = priority;
+					  }
+					  if (Array.isArray(scene.getObjectByName(getParOnScene[objEr]).material))
+					  {
+					  	for (var j in scene.getObjectByName(getParOnScene[objEr]).material)
+					  	{
+					  		scene.getObjectByName(getParOnScene[objEr]).material[j].emissive = 
+					  			new THREE.Color(col);
+					  	}
+				      } else
+					  {
+						scene.getObjectByName(getParOnScene[objEr]).material.emissive = new THREE.Color(col);
+					  }
+				  }
+			  }
+              
+            }
+          });
 
-              //for (var i = 0; i < lng; i++)
-              //{
-                //// console.log("\t ", getTimeOfError(json.data[i]), " > ", time, " == ",
-                ////  getTimeOfError(json.data[i]) > time);
-
-                  //var col;
-                  //var erst = getErrorStatus(json.data[i]);
-                  //if (erst in statuses) {
-                    //col = statuses[erst];
-                  //} else {
-                    //col = defaultColor;
-                  //}
-                  //var descr = getErrorDescripton(json.data[i]);
-                  //var objEr = getErrorObjName(json.data[i]);
-                  //// console.log("Имя объекта: ",objEr);
-                  //// showError(objEr,col);
-                  //var name = "";
-                	//for (key in graph)
-                	//{
-                		//if (key == objEr)
-                		//{
-                			//name = key;
-                			//break;
-                		//} else if ((asdf = graph[key].indexOf(objEr)) > -1)
-                		//{
-                			//name = key;
-                			//break;
-                		//}
-                	//}
-                	//if (name != "") {
-                		//scene.getObjectByName(name).material = new THREE.MeshLambertMaterial({color: col});
-                		//objxerr[name].push(objEr+": "+descr);
-                	//}
-                	//else
-                		//console.log("Невозможно локализовать ошибку в текущих настройках, _id = ", objEr);
-
-              //}
-            //}
-          //});
-
-          //time = Math.round(new Date().getTime()/1000.0);
-        //}
+          time = Math.round(new Date().getTime()/1000.0);
+        }
 
             requestAnimationFrame(render);
             renderer.render(scene, camera);

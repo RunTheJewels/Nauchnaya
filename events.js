@@ -12,6 +12,8 @@ var raycaster = new THREE.Raycaster();
 
 var c_h_o = "";
 
+var prevCol = 0x000000;
+
 help_onclick = function(){
 	alert('Управление:\n\
 w,a,s,d -- вперёд, влево, назад, вправо\n\
@@ -26,7 +28,7 @@ f1 -- справка по управлению (это сообщение)');
 function catlist(l) {
 	res = '';
 	for (item in l) {
-		res += l[item] + "\n";
+		res += l[item]['_id'] + ': ' + l[item]['err'] + "\n";
 	}
 	return res;
 }
@@ -74,12 +76,39 @@ window.onmousemove = function(e) {
 			
 			if ((c_h_o != "") && (c_h_o != intersects[0].object.name))
 			{
-				scene.getObjectByName(c_h_o).material.emissive = new THREE.Color("black");
+				if (Array.isArray(scene.getObjectByName(c_h_o).material))
+				{
+					for (var i in scene.getObjectByName(c_h_o).material)
+					{
+						scene.getObjectByName(c_h_o).material[i].emissive = 
+							new THREE.Color(prevCol);
+					}
+				} else
+				{
+					scene.getObjectByName(c_h_o).material.emissive = new THREE.Color(prevCol);
+				}
+				//scene.getObjectByName(c_h_o).material.emissive = new THREE.Color("black");
 				c_h_o = "";
 			}
 			if (intersects[0].object.name != "Плоскость"){
+					//alert(intersects[0].object.name)
 				if (c_h_o != intersects[0].object.name){
-					scene.getObjectByName(intersects[0].object.name).material.emissive = new THREE.Color("grey");
+					if ('material' in scene.getObjectByName(intersects[0].object.name))
+					{
+						if (Array.isArray(scene.getObjectByName(intersects[0].object.name).material))
+						{
+							prevCol = scene.getObjectByName(intersects[0].object.name).material[0].emissive;
+							for (var i in scene.getObjectByName(intersects[0].object.name).material)
+							{
+								scene.getObjectByName(intersects[0].object.name).material[i].emissive = 
+									new THREE.Color("grey");
+							}
+						} else
+						{
+							prevCol = scene.getObjectByName(intersects[0].object.name).material.emissive;
+							scene.getObjectByName(intersects[0].object.name).material.emissive = new THREE.Color("grey");
+						}
+					}
 					c_h_o = intersects[0].object.name;
 				}
 			}
@@ -118,51 +147,69 @@ else if (K == 72) {
 else if (K == 112) help_onclick();
 else if (K == 82) raycast = !raycast;
 else if (K == 49){
-	alert([camera.position.x,camera.position.y,camera.position.z])
-	//alert(JSON.stringify(objxerr));
-	//raycaster.setFromCamera( mouse, camera );
-
+	alert([camera.position.x,camera.position.y,camera.position.z]);
+  } else if (K == 90)
+  {
+	raycaster.setFromCamera( mouse, camera );
 	// calculate objects intersecting the picking ray
-	//var intersects = raycaster.intersectObjects( scene.children );
-	//if (intersects.length >= 1)
-	//{
-	//	document.getElementById('error-info').innerHTML = intersects[0].object.name;
-		//alert(intersects[0].object.name);
-	//}
-	
-	
-	//for ( var i = 0; i < intersects.length; i++ ) {
+	var intersects = raycaster.intersectObjects( scene.children );
+	if (intersects.length >= 1)
+	{
 		
-		//intersects[ i ].object.material.color.set( 0xff0000 );
-
-	//}
-	
-	
-//	console.log(1);
-	//var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   //x
-      //                                  -( event.clientY / window.innerHeight ) * 2 + 1,  //y
-        //                                0.5 );                                            //z
-   // var raycaster = new THREE.Raycaster();
-    //console.log(2);
-//    alert(mouse3D);
-//    projector.unprojectVector( mouse3D, camera );   
-//    mouse3D.sub( camera.position );                
-//    mouse3D.normalize();
-//    var raycaster = new THREE.Raycaster( camera.position, mouse3D );
-//    var intersects = raycaster.intersectObjects( objects );
-    // Change color if hit block
-//    if ( intersects.length > 0 ) {
-//        intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
-//    }
-    
-  // var cl = 0x000000;
-  // var iter = 0x0a0a0a;
-  // // for (var i = 1; i <= 1; i++)
-  // // {
-  //   console.log("R"+Math.floor(i/10).toString()+(i%10).toString()+"D");
-  //   scene.getObjectByName("R"+Math.floor(i/10).toString()+(i%10).toString()+"D").material = new THREE.MeshLambertMaterial({color: cl});
-  //   i+=1;
-  //   // cl += iter;
-  // // }
+		objToDel = g.find(function(node) {return node.data._id == intersects[0].object.name});
+		if (objToDel.children.length == 0)
+		{
+			alert("У данного объекта нет составных частей")
+		} else
+		{
+			errObjs = [];
+			for (var item in objToDel.children)
+			{
+				if (!objCanPlace(objToDel.children[item])) errObjs.push(objToDel.children[item].data._id);
+			}
+			if (errObjs.length == 0)
+			{
+				for (var item in objToDel.children)
+				{
+					objOnScene(objToDel.children[item])
+				}
+				var selectedObject = scene.getObjectByName(objToDel.data._id);
+    			scene.remove(selectedObject);
+    			c_h_o = "";
+    			var listOfErrors = objxerr[objToDel.data._id];
+    			var nodeToDel = g.find(function (node)
+    			{
+					return node.data._id == objToDel.data._id;
+				});
+				if (nodeToDel != null)
+				{
+					var newPar = {};
+					nodeToDel.traverseDown(function (node)
+					{
+						if (node.data._id == objToDel.data._id)
+						{
+							; // Ничего не делаем
+						} else if (node.parent.data._id == objToDel.data._id)
+						{
+							newPar[node.data._id] = node.data._id;
+							objxerr[node.data._id] = [];
+						} else if (node.parent.data._id in newPar)
+						{
+							newPar[node.data._id] = newPar[node.parent.data._id];
+						}
+					});
+					//alert(JSON.stringify(newPar));
+					for (var item in listOfErrors)
+					{
+						//alert(listOfErrors[item]['_id']);
+						//alert(newPar[listOfErrors[item]]);
+						objxerr[newPar[listOfErrors[item]['_id']]].push(listOfErrors[item]);
+					}
+					objxerr[objToDel.data._id] = [];
+				}
+    		} else alert('Невозможно разбить данный объект, т.к. некоторые составные части не имеют координат или размеров:\n' 
+    			+ JSON.stringify(errObjs))
+		}
+	}
   }
 };
